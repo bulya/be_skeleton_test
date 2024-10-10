@@ -1,0 +1,79 @@
+name: "be-skeleton-test"
+
+# Configurations shared between api service, celery and celery beat.
+x-base-api: &base-api
+  env_file:
+    - ../api/.env
+  volumes:
+    - ../api:/opt/api
+  build:
+    context: ..
+    dockerfile: docker/images/api/Dockerfile
+    target: local
+
+services:
+  api:
+    <<: *base-api
+    command: ["make", "run"]
+    depends_on:
+      - postgres-db
+      - redis-db
+      - mailpit
+      - minio
+      - createbuckets
+    ports:
+      - ${LOCAL_IP:-127.0.0.1}:${API_LOCAL_PORT:-8000}:8000
+  celery-worker:
+    <<: *base-api
+    command: ["make", "celery-worker-run"]
+    depends_on:
+      - api
+      - redis-db
+  celery-beat:
+    <<: *base-api
+    command: ["make", "celery-beat-run"]
+    depends_on:
+      - api
+      - redis-db
+  postgres-db:
+    environment:
+      POSTGRES_USER: be_skeleton_test_user
+      POSTGRES_DB: be_skeleton_test_db
+      POSTGRES_PASSWORD: be_skeleton_test_password
+    image: postgres:16.3-alpine
+    volumes:
+      - pg-data:/var/lib/postgresql/data:rw
+  redis-db:
+    image: redis:7.2-alpine
+    volumes:
+      - redis-data:/data:rw
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+     - ${LOCAL_IP:-127.0.0.1}:${MAILPIT_LOCAL_PORT:-8025}:8025
+  minio:
+    image: minio/minio:latest
+    ports:
+     - ${LOCAL_IP:-127.0.0.1}:${MINIO_LOCAL_PORT:-9000}:9000
+     - ${LOCAL_IP:-127.0.0.1}:${MINIO_CONSOLE_LOCAL_PORT:-9001}:9001
+    environment:
+      MINIO_ROOT_USER: minioadminuser
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    volumes:
+     - minio-data:/data
+    command: [ "server", "--console-address", ":9001", "/data" ]
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+     /bin/sh -c "
+     until (/usr/bin/mc alias set myminio http://minio:9000 minioadminuser minioadminpassword) do echo '...waiting...' && sleep 1; done;
+     /usr/bin/mc mb --ignore-existing myminio/storage;
+     /usr/bin/mc anonymous set download myminio/storage;
+     exit 0;
+     "
+volumes:
+  pg-data: {}
+  redis-data: {}
+  minio-data: {}
