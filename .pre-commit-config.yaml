@@ -33,9 +33,7 @@ repos:
     rev: v1.3.3
     hooks:
       - id: python-safety-dependencies-check
-        entry: safety
-        args: [check]
-        files: ./api/pyproject.toml
+        files: pyproject.toml
 # TODO: Run this hook from docker container.
 #  - repo: local
 #    hooks:

@@ -21,6 +21,7 @@ psycopg = { version = "*", extras = ["binary", "pool"] }
 redis = "*"
 sentry-sdk = "*"
 django-storages = "*"
+
 boto3 = "^1.26"
 
 [tool.poetry.group.dev.dependencies]
