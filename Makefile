@@ -26,3 +26,6 @@ compose-down:
 
 compose-build:
 	cd docker/ && docker compose build
+
+migrate:
+	cd docker/ && docker compose run --rm api make migrate

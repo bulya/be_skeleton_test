@@ -19,9 +19,12 @@ repos:
       - id: pretty-format-json
         args: ['--autofix', '--indent 2', ]
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
+        args: ["--toml=api/pyproject.toml"]
+        additional_dependencies:
+          - tomli
 
   # API
   - repo: https://github.com/astral-sh/ruff-pre-commit
