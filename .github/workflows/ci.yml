@@ -38,7 +38,7 @@ jobs:
           cp ./api/.env.example ./api/.env
 
       - name: Build the Stack
-        run: make build
+        run: make compose-build
 
       - name: Check missing DB migrations
         run: make api-check-migrations
